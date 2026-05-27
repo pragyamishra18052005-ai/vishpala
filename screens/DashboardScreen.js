@@ -2,6 +2,8 @@ import { StyleSheet, Text, View, TouchableOpacity, TextInput, ScrollView } from 
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
 
+const API_URL = 'https://vishpala.onrender.com';
+
 export default function DashboardScreen({ navigation, route }) {
   const [score, setScore] = useState(0);
   const [risk, setRisk] = useState('...');
@@ -28,18 +30,12 @@ export default function DashboardScreen({ navigation, route }) {
       const a = scoreData.action === 'ALLOW' ? 'ALLOWED' :
                 scoreData.action === '2FA' ? '2FA REQUIRED' : 'BLOCKED';
       const c = s >= 75 ? '#2ECC71' : s >= 40 ? '#F39C12' : '#E74C3C';
-      setScore(s);
-      setRisk(r);
-      setAction(a);
-      setColor(c);
+      setScore(s); setRisk(r); setAction(a); setColor(c);
       setLoading(false);
       saveSession(s, r, scoreData.action);
       if (scoreData.action === '2FA') generateOTP();
     } else {
-      setScore(55);
-      setRisk('LOW');
-      setAction('ALLOWED');
-      setColor('#2ECC71');
+      setScore(55); setRisk('LOW'); setAction('ALLOWED'); setColor('#2ECC71');
       setLoading(false);
       saveSession(55, 'LOW', 'ALLOW');
     }
@@ -47,20 +43,17 @@ export default function DashboardScreen({ navigation, route }) {
 
   const saveSession = async (s, r, a) => {
     try {
-      await supabase.from('users').upsert({ 
-        user_id: userId, name: userName, 
-        email: `${userId}@vishpala.com` 
+      await supabase.from('users').upsert({
+        user_id: userId, name: userName, email: `${userId}@vishpala.com`
       }, { onConflict: 'user_id' });
       await supabase.from('sessions').insert({
-        user_id: userId, session_id: Date.now(),
-        score: s, risk: r, action: a,
+        user_id: userId, session_id: Date.now(), score: s, risk: r, action: a,
       });
-      console.log('✅ Saved!');
     } catch (err) { console.log('Error:', err); }
   };
 
   const generateOTP = () => {
-    fetch('http://127.0.0.1:8000/generate-otp', {
+    fetch(`${API_URL}/generate-otp`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ user_id: userId })
@@ -71,7 +64,7 @@ export default function DashboardScreen({ navigation, route }) {
   };
 
   const verifyOTP = () => {
-    fetch('http://127.0.0.1:8000/verify-otp', {
+    fetch(`${API_URL}/verify-otp`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ user_id: userId, otp: otp })
@@ -89,13 +82,9 @@ export default function DashboardScreen({ navigation, route }) {
 
   const handleAdminAccess = () => {
     if (adminPassword === 'admin123') {
-      setShowAdminInput(false);
-      setAdminPassword('');
-      setAdminError('');
+      setShowAdminInput(false); setAdminPassword(''); setAdminError('');
       navigation.navigate('Admin');
-    } else {
-      setAdminError('❌ Wrong Password!');
-    }
+    } else { setAdminError('❌ Wrong Password!'); }
   };
 
   return (
@@ -148,11 +137,8 @@ export default function DashboardScreen({ navigation, route }) {
               {otpVerified ? '✓ IDENTITY VERIFIED VIA 2FA' : `✓ ACCESS ${action}`}
             </Text>
           </View>
-          {otpVerified && (
-            <Text style={styles.verifiedNote}>2FA verification successful ✅</Text>
-          )}
+          {otpVerified && <Text style={styles.verifiedNote}>2FA verification successful ✅</Text>}
 
-          {/* Admin Access — score ke neeche */}
           {showAdminInput ? (
             <View style={styles.adminInputBox}>
               <Text style={styles.adminInputLabel}>🔐 ADMIN PASSWORD:</Text>

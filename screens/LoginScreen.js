@@ -1,6 +1,8 @@
 import { StyleSheet, Text, View, TextInput, TouchableOpacity } from 'react-native';
 import { useState, useRef } from 'react';
 
+const API_URL = 'https://vishpala.onrender.com';
+
 export default function LoginScreen({ navigation, route }) {
   const [text, setText] = useState('');
   const [isChecking, setIsChecking] = useState(false);
@@ -33,44 +35,26 @@ export default function LoginScreen({ navigation, route }) {
     while (events.length < 5) {
       const now = Date.now();
       const dwell = Math.floor(Math.random() * (150 - 60 + 1)) + 60;
-      events.push({
-        key: 'a',
-        keydown: now - dwell,
-        keyup: now,
-        dwell: dwell,
-      });
+      events.push({ key: 'a', keydown: now - dwell, keyup: now, dwell: dwell });
     }
 
-    const loginData = {
-      user_id: userId,
-      session_id: Date.now(),
-      events: events,
-    };
+    const loginData = { user_id: userId, session_id: Date.now(), events: events };
 
-    console.log('User:', userId, 'Events:', events.length);
-
-    fetch('http://127.0.0.1:8000/score', {
+    fetch(`${API_URL}/score`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(loginData)
     })
     .then(r => r.json())
     .then(res => {
-      console.log('Score:', res);
       setIsChecking(false);
-      navigation.navigate('Dashboard', { 
-        scoreData: res,
-        userId: userId,
-        userName: userName
-      });
+      navigation.navigate('Dashboard', { scoreData: res, userId: userId, userName: userName });
     })
-    .catch((err) => {
-      console.log('Error:', err);
+    .catch(() => {
       setIsChecking(false);
       navigation.navigate('Dashboard', {
         scoreData: { score: 75, risk: 'LOW', action: 'ALLOW' },
-        userId: userId,
-        userName: userName
+        userId: userId, userName: userName
       });
     });
   };
